@@ -49,7 +49,7 @@ def create_xml(r):
     for row in r.iter_rows(min_row=2):
 
         # Проверка условия на наличие имени в строке и проверка на загруженный протокол
-        if row[3].value and not row[9].value:
+        if row[3].value: # and not row[10].value:
 
             # Специальные условия для получения констант
             if row[0].value:
@@ -75,8 +75,9 @@ def create_xml(r):
             middle_name = ET.SubElement(worker, 'MiddleName')
             middle_name.text = fio[2]
 
+            # СНИЛС
             snils = ET.SubElement(worker, 'Snils')
-            snils.text = '123-456-789 00'  # TODO: добавить снилс
+            snils.text = row[5].value
 
             # Рабочее место
             position = ET.SubElement(worker, 'Position')
@@ -84,11 +85,11 @@ def create_xml(r):
 
             # ИНН организации
             employer_inn = ET.SubElement(worker, 'EmployerInn')
-            employer_inn.text = str(row[6].value)
+            employer_inn.text = str(row[7].value)
 
             # Наименование организации
             employer_title = ET.SubElement(worker, 'EmployerTitle')
-            employer_title.text = row[5].value
+            employer_title.text = row[6].value
 
             # Создание объекта организации
             organization = ET.SubElement(registry_record, 'Organization')
@@ -98,12 +99,12 @@ def create_xml(r):
             title = ET.SubElement(organization, 'Title')
             title.text = 'ООО "АТМ"'  # Наше название
 
-            if row[7].value == 'удовлетворительно':
+            if row[8].value == 'удовлетворительно':
                 res_ob = 'true'
             else:
                 res_ob = 'false'
 
-            prog_ob = di[row[8].value]
+            prog_ob = di[row[9].value]
 
             # Создаем обьект тест, указываем результат тестирования и номер программы обучения
             test = ET.SubElement(registry_record, 'Test', isPassed=res_ob, learnProgramId=prog_ob)
@@ -118,7 +119,7 @@ def create_xml(r):
 
             # Указываем название программы обучния
             learn_program_title = ET.SubElement(test, 'LearnProgramTitle')
-            learn_program_title.text = row[8].value
+            learn_program_title.text = row[9].value
 
     # Создаем документ на основе элементов
     xml_doc = ET.ElementTree(registry_set)
