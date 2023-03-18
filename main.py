@@ -70,29 +70,23 @@ def create_xml(prot, r):
             # Разбитие фио на Ф И О
             fio = row[3].value.split()
 
+            last_name = ET.SubElement(worker, 'LastName')
+            last_name.text = fio[0]
+
+            first_name = ET.SubElement(worker, 'FirstName')
+            first_name.text = fio[1]
+
+            middle_name = ET.SubElement(worker, 'MiddleName')
+
             try:
                 match len(fio):
 
                     # Если ФИО состоит из 3 элементов
                     case 3:
-                        last_name = ET.SubElement(worker, 'LastName')
-                        last_name.text = fio[0]
-
-                        first_name = ET.SubElement(worker, 'FirstName')
-                        first_name.text = fio[1]
-
-                        middle_name = ET.SubElement(worker, 'MiddleName')
                         middle_name.text = fio[2]
 
                     # Если ФИО состоит из 2 элементов
                     case 2:
-                        last_name = ET.SubElement(worker, 'LastName')
-                        last_name.text = fio[0]
-
-                        first_name = ET.SubElement(worker, 'FirstName')
-                        first_name.text = fio[1]
-
-                        middle_name = ET.SubElement(worker, 'MiddleName')
                         middle_name.text = ''
 
                     # Проблемный кейс
