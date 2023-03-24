@@ -204,9 +204,14 @@ def button_form_xml():
 
 
 def button_list_protocol():
+    # Выбираем лист
     sheet = path_to_sheet()[0]
 
     if sheet:
+
+        # очистка списка протоколов
+        box.delete(0, END)
+
         for row in sheet.iter_rows(min_row=2):
 
             # Проверка условия на наличие имени в строке и проверка на загруженный протокол
@@ -266,14 +271,15 @@ if __name__ == '__main__':
     f = tk.Frame(window)
     f.pack(side=LEFT, padx=10)
 
+    # Создаем кнопку получения списка протоколов
     tk.Button(f, text="Получить список протоколов", command=button_list_protocol, fg='#ffffff', bg='#4CAF50', relief='flat',
               activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
 
-    # Создаем кнопку и размещаем ее на фрейме
+    # Создаем кнопку формирования XML
     tk.Button(f, text="Сформировать XML", command=button_form_xml, fg='#ffffff', bg='#4CAF50', relief='flat',
               activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
 
-    # Создаем кнопку и размещаем ее на фрейме
+    # Создаем кнопку обратной загрузки
     tk.Button(f, text="Обратная загрузка", command=button_rev, fg='#ffffff', bg='#4CAF50', relief='flat',
               activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
 
