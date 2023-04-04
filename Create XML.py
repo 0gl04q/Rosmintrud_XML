@@ -49,6 +49,8 @@ def create_xml(prot, r):
     const_date = ''  # Дата проверки знаний
     const_n_prot = ''  # номер протокола проверки знаний
 
+    snils_list = []
+
     # Перебор строк в excel
     for row in r.iter_rows(min_row=2):
 
@@ -61,7 +63,7 @@ def create_xml(prot, r):
             if row[1].value:
                 const_n_prot = row[1].value
 
-            # Создание общего обьекта
+            # Создание общего объекта
             registry_record = ET.SubElement(registry_set, 'RegistryRecord')
 
             # Создание работника
@@ -97,6 +99,13 @@ def create_xml(prot, r):
             except IndexError:
                 messagebox.showwarning("Предупреждение",
                                        f'Проблемы с именем у ученика: {" ".join(fio)}.')
+                return
+
+            # Проверка СНИЛС на повторение
+            if row[5].value not in snils_list:
+                snils_list.append(row[5].value)
+            else:
+                messagebox.showwarning("Предупреждение", f'Программа остановлена, СНИЛС повторяется: {row[5].value}.')
                 return
 
             # СНИЛС
@@ -136,23 +145,23 @@ def create_xml(prot, r):
                                        f'Учебной программы этого ученика нет в списке: {" ".join(fio)}.')
                 return
 
-            # Создаем обьект тест, указываем результат тестирования и номер программы обучения
+            # Создаем объект тест, указываем результат тестирования и номер программы обучения
             test = ET.SubElement(registry_record, 'Test', isPassed=res_ob, learnProgramId=prog_ob)
 
-            # Создаем обьект даты и заполняем
+            # Создаем объект даты и заполняем
             date = ET.SubElement(test, 'Date')
 
             try:
                 date.text = f'{str(const_date).split()[0]}T01:00:00'
             except IndexError:
-                messagebox.showwarning("Предупреждение", f'Дата этого ученика нет в отсутствует: {" ".join(fio)}.')
+                messagebox.showwarning("Предупреждение", f'Дата в ячейке у этого ученика отсутствует: {" ".join(fio)}.')
                 return
 
-            # Создаем обьект протокола
+            # Создаем объект протокола
             protocol_number = ET.SubElement(test, 'ProtocolNumber')
             protocol_number.text = const_n_prot
 
-            # Указываем название программы обучния
+            # Указываем название программы обучения
             learn_program_title = ET.SubElement(test, 'LearnProgramTitle')
             learn_program_title.text = di[str(row[9].value)]
 
