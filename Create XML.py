@@ -110,19 +110,36 @@ def create_xml(prot, r):
 
             # СНИЛС
             snils = ET.SubElement(worker, 'Snils')
-            snils.text = row[5].value
+            try:
+                snils.text = row[5].value
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с СНИЛС: {" ".join(fio)}. Протокол {prot}')
+                return
 
             # Рабочее место
             position = ET.SubElement(worker, 'Position')
-            position.text = row[4].value
+            try:
+                position.text = row[4].value
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с РМ: {" ".join(fio)}. Протокол {prot}')
+                return
 
             # ИНН организации
             employer_inn = ET.SubElement(worker, 'EmployerInn')
-            employer_inn.text = str(row[7].value)
+            try:
+                employer_inn.text = str(row[7].value)
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с ИНН организации: {" ".join(fio)}. Протокол {prot}')
+                return
 
             # Наименование организации
             employer_title = ET.SubElement(worker, 'EmployerTitle')
-            employer_title.text = row[6].value
+
+            try:
+                employer_title.text = row[6].value
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с наименование организации: {" ".join(fio)}. Протокол {prot}')
+                return
 
             # Создание объекта организации
             organization = ET.SubElement(registry_record, 'Organization')
@@ -159,11 +176,20 @@ def create_xml(prot, r):
 
             # Создаем объект протокола
             protocol_number = ET.SubElement(test, 'ProtocolNumber')
-            protocol_number.text = const_n_prot
+            try:
+                protocol_number.text = const_n_prot
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с протоколом: {" ".join(fio)}. Протокол {prot}')
+                return
 
             # Указываем название программы обучения
             learn_program_title = ET.SubElement(test, 'LearnProgramTitle')
-            learn_program_title.text = di[str(row[9].value)]
+
+            try:
+                learn_program_title.text = di[str(row[9].value)]
+            except KeyError:
+                messagebox.showwarning("Предупреждение", f'Проблемы с программой обучения: {" ".join(fio)}. Протокол {prot}')
+                return
 
     # Создаем документ на основе элементов
     xml_doc = ET.ElementTree(registry_set)
