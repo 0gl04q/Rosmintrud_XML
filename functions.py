@@ -1,12 +1,9 @@
 import lxml.etree as ET
-
-import tkinter as tk
-from tkinter import *
-from tkinter import messagebox, filedialog
-
+from datetime import datetime
 from openpyxl import load_workbook
 
-di = {
+# Наименования ПО
+DI = {
     "1": "Оказание первой помощи пострадавшим",
     "2": "Использование (применение) средств индивидуальной защиты",
     "3": "Общие вопросы охраны труда и функционирования системы управления охраной труда",
@@ -37,9 +34,19 @@ di = {
     "29": "Безопасные методы и приемы работ в театрах"
 }
 
+# Путь к файлу
+PATH = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
 
-# Функция создания xml
-def create_xml(prot, r):
+
+def create_xml(prot: str, wb) -> str or bool:
+    """
+    Функция создания xml
+
+    Создает файл <prot>.xml в указанной директории PATH
+    """
+
+    r = wb['с 01.03.2023']
+
     # Создаем XML-элементы в соответствии с заданной схемой
     attr_qname = ET.QName("http://www.w3.org/2001/XMLSchema-instance", "noNamespaceSchemaLocation")
 
@@ -48,8 +55,6 @@ def create_xml(prot, r):
 
     const_date = ''  # Дата проверки знаний
     const_n_prot = ''  # номер протокола проверки знаний
-
-    snils_list = []
 
     # Перебор строк в excel
     for row in r.iter_rows(min_row=2):
@@ -93,44 +98,31 @@ def create_xml(prot, r):
 
                     # Проблемный кейс
                     case _:
-                        messagebox.showwarning("Предупреждение",
-                                               f'Проблемы с именем у ученика: {" ".join(fio)}.')
-                        return
-            except IndexError:
-                messagebox.showwarning("Предупреждение",
-                                       f'Проблемы с именем у ученика: {" ".join(fio)}.')
-                return
+                        return f'Проблемы с именем у ученика: {" ".join(fio)}.'
 
-            # Проверка СНИЛС на повторение
-            if row[5].value not in snils_list:
-                snils_list.append(row[5].value)
-            else:
-                messagebox.showwarning("Предупреждение", f'Программа остановлена, СНИЛС повторяется: {row[5].value}.')
-                return
+            except IndexError:
+                return f'Проблемы с именем у ученика: {" ".join(fio)}.'
 
             # СНИЛС
             snils = ET.SubElement(worker, 'Snils')
             try:
                 snils.text = row[5].value
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с СНИЛС: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с СНИЛС: {" ".join(fio)}. Протокол {prot}'
 
             # Рабочее место
             position = ET.SubElement(worker, 'Position')
             try:
                 position.text = row[4].value
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с РМ: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с РМ: {" ".join(fio)}. Протокол {prot}'
 
             # ИНН организации
             employer_inn = ET.SubElement(worker, 'EmployerInn')
             try:
                 employer_inn.text = str(row[7].value)
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с ИНН организации: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с ИНН организации: {" ".join(fio)}. Протокол {prot}'
 
             # Наименование организации
             employer_title = ET.SubElement(worker, 'EmployerTitle')
@@ -138,8 +130,7 @@ def create_xml(prot, r):
             try:
                 employer_title.text = row[6].value
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с наименование организации: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с наименование организации: {" ".join(fio)}. Протокол {prot}'
 
             # Создание объекта организации
             organization = ET.SubElement(registry_record, 'Organization')
@@ -158,9 +149,7 @@ def create_xml(prot, r):
             try:
                 prog_ob = str(row[9].value)
             except KeyError:
-                messagebox.showwarning("Предупреждение",
-                                       f'Учебной программы этого ученика нет в списке: {" ".join(fio)}.')
-                return
+                return f'Учебной программы этого ученика нет в списке: {" ".join(fio)}.'
 
             # Создаем объект тест, указываем результат тестирования и номер программы обучения
             test = ET.SubElement(registry_record, 'Test', isPassed=res_ob, learnProgramId=prog_ob)
@@ -169,154 +158,86 @@ def create_xml(prot, r):
             date = ET.SubElement(test, 'Date')
 
             try:
-                date.text = f'{str(const_date).split()[0]}T01:00:00'
+                date.text = str(const_date).split()[0]
             except IndexError:
-                messagebox.showwarning("Предупреждение", f'Дата в ячейке у этого ученика отсутствует: {" ".join(fio)}.')
-                return
+                return f'Дата в ячейке у этого ученика отсутствует: {" ".join(fio)}.'
 
             # Создаем объект протокола
             protocol_number = ET.SubElement(test, 'ProtocolNumber')
             try:
                 protocol_number.text = const_n_prot
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с протоколом: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с протоколом: {" ".join(fio)}. Протокол {prot}'
 
             # Указываем название программы обучения
             learn_program_title = ET.SubElement(test, 'LearnProgramTitle')
 
             try:
-                learn_program_title.text = di[str(row[9].value)]
+                learn_program_title.text = DI[str(row[9].value)]
             except KeyError:
-                messagebox.showwarning("Предупреждение", f'Проблемы с программой обучения: {" ".join(fio)}. Протокол {prot}')
-                return
+                return f'Проблемы с программой обучения: {" ".join(fio)}. Протокол {prot}'
 
     # Создаем документ на основе элементов
     xml_doc = ET.ElementTree(registry_set)
 
     try:
-
+        path = fr'\\192.168.10.10\учебный центр\Учеба\Журналы\XML\{prot.replace("/", " ")}.xml'
         # Сохраняем документ в файл
-        xml_doc.write(fr'\\192.168.10.10\учебный центр\Учеба\Журналы\XML\{prot.replace("/", " ")}.xml',
+        xml_doc.write(path,
                       pretty_print=True, xml_declaration=True, encoding='utf-8')
 
-        messagebox.showwarning("Сообщение", fr'Файл успешно сформирован {prot.replace("/", " ")}.xml')
+        return True
     except OSError:
-
-        messagebox.showwarning("Предупреждение", fr'Ошибка доступа к папке для хранения xml')
-        return
+        return 'Ошибка доступа к папке для хранения xml'
 
 
-def path_to_sheet():
-    # Путь к файлу
-    path = fr'\\192.168.10.10\учебный центр\Учеба\Журналы'
+def get_workbook():
+    """
+    Функция для получения книги по заданному пути в константах пути
+    """
 
     try:
-
-        # Загружаем книгу
-        wb = load_workbook(filename=f'{path}\\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx')
+        return load_workbook(filename=PATH)
     except OSError:
-        messagebox.showwarning("Предупреждение", f'Книга Excel недоступна!!!')
-        return
-
-    # Выбираем необходимую страницу
-    return wb['с 01.03.2023'], wb
+        return 'Нет доступа к файлу, проверьте VPN или наличие файла в папке.'
 
 
-# Создаем функцию для обработки нажатия на кнопку
-def button_form_xml():
-    sheet = path_to_sheet()[0]
+def get_list_protocol(wb):
+    """
+    Функция для получения списка протоколов из книги
+    """
+    sheet = wb['с 01.03.2023']
 
-    if sheet:
+    protocol_list = sorted(
+        set(
+            (row[0].value, row[1].value) for row in sheet.iter_rows(min_row=2) if row[3].value and not row[10].value
+        ),
+        key=lambda x: x[0])
 
-        # Вызываем функцию создания XML
-        select = list(box.curselection())
-        select.reverse()
-        for i in select:
-            create_xml(box.get(i), sheet)
-    else:
-        return
-
-
-def button_list_protocol():
-    # Выбираем лист
-    sheet = path_to_sheet()[0]
-
-    if sheet:
-
-        # очистка списка протоколов
-        box.delete(0, END)
-
-        for row in sheet.iter_rows(min_row=2):
-
-            # Проверка условия на наличие имени в строке и проверка на загруженный протокол
-            if row[3].value and not row[10].value:
-                if row[1].value not in box.get(0, END):
-                    box.insert(END, row[1].value)
-    else:
-        return
+    return (i[1] for i in protocol_list)
 
 
-def button_rev():
-    # Выбор файла выгрузки
-    file_path = filedialog.askopenfile(defaultextension=".xlsx", filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")])
-    wb = load_workbook(filename=file_path.name)
+def data_update(f_name, wb_update):
+
+    wb = load_workbook(filename=f_name)
     sheet = wb.active
 
-    # Получаем страницу и книгу
-    sheet_dow, wb_dow = path_to_sheet()
+    if not wb_update:
+        wb_update = load_workbook(filename=PATH)
 
     # Перебираем строки
     for row in sheet.iter_rows(min_row=2):
-        for row_dow in sheet_dow.iter_rows(min_row=2):
+        for row_dow in wb_update['с 01.03.2023'].iter_rows(min_row=2):
             if not row_dow[10].value and row_dow[5].value == row[5].value and row_dow[1].value == row[11].value:
                 row_dow[10].value = row[0].value
 
     try:
 
         # Сохраняем файл
-        wb_dow.save(fr'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx')
+        path = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
+        wb_update.save(path)
 
-        messagebox.showwarning("Сообщение", "Сведения загружены успешно!")
+        return "Сведения загружены успешно!"
 
     except OSError:
-        messagebox.showwarning("Предупреждение", f'Нет доступа к нашему excel!\nЗакройте файл!')
-        return
-
-
-if __name__ == '__main__':
-    # Создаем окно
-    window = tk.Tk()
-
-    # Устанавливаем заголовок окна
-    window.title("XML")
-
-    # Устанавливаем размеры окна
-    window.geometry("650x400")
-
-    box = Listbox(selectmode=EXTENDED, width=50, height=50)
-    box.pack(side=LEFT)
-
-    scroll = Scrollbar(command=box.yview)
-    scroll.pack(side=LEFT, fill=Y)
-
-    box.config(yscrollcommand=scroll.set)
-
-    # Создаем фрейм и размещаем его на форме
-    f = tk.Frame(window)
-    f.pack(side=LEFT, padx=10)
-
-    # Создаем кнопку получения списка протоколов
-    tk.Button(f, text="Получить список протоколов", command=button_list_protocol, fg='#ffffff', bg='#4CAF50', relief='flat',
-              activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
-
-    # Создаем кнопку формирования XML
-    tk.Button(f, text="Сформировать XML", command=button_form_xml, fg='#ffffff', bg='#4CAF50', relief='flat',
-              activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
-
-    # Создаем кнопку обратной загрузки
-    tk.Button(f, text="Обратная загрузка", command=button_rev, fg='#ffffff', bg='#4CAF50', relief='flat',
-              activebackground='#2E7D32', font=('Arial', 14)).pack(fill=X, pady=10)
-
-    # Запускаем главный цикл обработки событий
-    window.mainloop()
+        return "Нет доступа к нашему excel"
