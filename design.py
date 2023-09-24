@@ -1,5 +1,8 @@
+import os
+import sys
+
 import flet as ft
-import sys, os
+
 import functions
 
 
@@ -78,7 +81,7 @@ def main(page: ft.Page):
         label="Список протоколов",
         hint_text="Выберите протокол",
     )
-    
+
     page.overlay.append(pick_files_dialog)
     page.window_width = 400
     page.window_height = 400

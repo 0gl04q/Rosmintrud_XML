@@ -35,7 +35,8 @@ DI = {
 }
 
 # Путь к файлу
-PATH = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
+PATH_TO_MAIN = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
+PATH_TO_XML = r'\\192.168.10.10\учебный центр\Учеба\Журналы\XML'
 
 
 def create_xml(prot: str, wb) -> str or bool:
@@ -181,7 +182,7 @@ def create_xml(prot: str, wb) -> str or bool:
     xml_doc = ET.ElementTree(registry_set)
 
     try:
-        path = fr'\\192.168.10.10\учебный центр\Учеба\Журналы\XML\{prot.replace("/", " ")}.xml'
+        path = PATH_TO_XML + fr'\{prot.replace("/", " ")}.xml'
         # Сохраняем документ в файл
         xml_doc.write(path,
                       pretty_print=True, xml_declaration=True, encoding='utf-8')
@@ -197,7 +198,7 @@ def get_workbook():
     """
 
     try:
-        return load_workbook(filename=PATH)
+        return load_workbook(filename=PATH_TO_MAIN)
     except OSError:
         return 'Нет доступа к файлу, проверьте VPN или наличие файла в папке.'
 
@@ -212,32 +213,43 @@ def get_list_protocol(wb):
         set(
             (row[0].value, row[1].value) for row in sheet.iter_rows(min_row=2) if row[3].value and not row[10].value
         ),
-        key=lambda x: x[0])
+        key=lambda x: x[0]
+    )
 
     return (i[1] for i in protocol_list)
 
 
 def data_update(f_name, wb_update):
+    """
+        Функция для загрузки списка протоколов из реестра
+    """
 
+    # Получаем книгу и открываем книгу
     wb = load_workbook(filename=f_name)
     sheet = wb.active
 
     if not wb_update:
-        wb_update = load_workbook(filename=PATH)
+        wb_update = load_workbook(filename=PATH_TO_MAIN)
 
-    # Перебираем строки
-    for row in sheet.iter_rows(min_row=2):
-        for row_dow in wb_update['с 01.03.2023'].iter_rows(min_row=2):
-            if not row_dow[10].value and row_dow[5].value == row[5].value and row_dow[1].value == row[11].value:
-                row_dow[10].value = row[0].value
+    # Получаем итератор строк с незаполненными протоколами
+    row_file = filter(lambda row_obj: not row_obj[10].value, wb_update['с 01.03.2023'].iter_rows(min_row=2))
 
+    # Получаем итератор строк файла загрузки
+    row_file_input = list(sheet.iter_rows(min_row=2))
+
+    for row_main in row_file:
+
+        # Находим и заполняем строку файла
+        filter_obj = list(filter(
+            lambda row_input: row_input[12].value == row_main[1].value and row_input[5].value == row_main[5].value,
+            row_file_input))
+        if filter_obj:
+            row_main[10].value = filter_obj[0][0].value
+        else:
+            return f"Проблемы с загрузкой файла,проблема в строке СНИЛС: {row_main[5].value}"
     try:
-
         # Сохраняем файл
-        path = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
-        wb_update.save(path)
-
+        wb_update.save(PATH_TO_MAIN)
         return "Сведения загружены успешно!"
-
     except OSError:
         return "Нет доступа к нашему excel"
