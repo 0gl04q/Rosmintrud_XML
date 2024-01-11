@@ -43,9 +43,6 @@ def main(page: ft.Page):
     def get_list_protocol_button(e):
         nonlocal wb
         wb = functions.get_workbook()
-
-        # TODO: Добавить ожидание
-
         if isinstance(wb, str):
             show_banner_click(e, wb)
         else:

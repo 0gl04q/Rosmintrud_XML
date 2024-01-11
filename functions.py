@@ -233,17 +233,16 @@ def data_update(f_name, wb_update):
         wb_update = load_workbook(filename=PATH_TO_MAIN)
 
     # Получаем итератор строк с незаполненными протоколами
-    row_file = filter(lambda row_obj: not row_obj[10].value, wb_update['с 01.03.2023'].iter_rows(min_row=2))
-
-    # Получаем итератор строк файла загрузки
-    row_file_input = list(sheet.iter_rows(min_row=2))
+    row_file = filter(lambda row_obj: not row_obj[10].value, wb_update[WB_SHEET].iter_rows(min_row=2))
 
     for row_main in row_file:
-
         # Находим и заполняем строку файла
-        filter_obj = list(filter(
-            lambda row_input: row_input[12].value == row_main[1].value and row_input[5].value == row_main[5].value,
-            row_file_input))
+        filter_obj = list(
+            filter(
+                lambda row_input: row_input[13].value == row_main[1].value and row_input[6].value == row_main[5].value,
+                sheet.iter_rows(min_row=2)
+            )
+        )
         if filter_obj:
             row_main[10].value = filter_obj[0][0].value
         else:
