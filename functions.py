@@ -35,8 +35,9 @@ DI = {
 }
 
 # Путь к файлу
-PATH_TO_MAIN = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2023.xlsx'
+PATH_TO_MAIN = r'\\192.168.10.10\учебный центр\Учеба\Журналы\Журнал регистрации удостоверений АТМ ДОТ 2024.xlsx'
 PATH_TO_XML = r'\\192.168.10.10\учебный центр\Учеба\Журналы\XML'
+WB_SHEET = 'с 09.01.2024'
 
 
 def create_xml(prot: str, wb) -> str or bool:
@@ -46,7 +47,7 @@ def create_xml(prot: str, wb) -> str or bool:
     Создает файл <prot>.xml в указанной директории PATH
     """
 
-    r = wb['с 01.03.2023']
+    r = wb[WB_SHEET]
 
     # Создаем XML-элементы в соответствии с заданной схемой
     attr_qname = ET.QName("http://www.w3.org/2001/XMLSchema-instance", "noNamespaceSchemaLocation")
@@ -207,7 +208,7 @@ def get_list_protocol(wb):
     """
     Функция для получения списка протоколов из книги
     """
-    sheet = wb['с 01.03.2023']
+    sheet = wb[WB_SHEET]
 
     protocol_list = sorted(
         set(
