@@ -3,9 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-ssl/
-
-../Lending/.idea
+.idea
 logs
 
 # C extensions
